@@ -22,6 +22,8 @@ std::unordered_map<JoyAxis, int, EnumHash> PublishControl::axes;
 std::unordered_map<JoyButton, int, EnumHash> PublishControl::btns;
 pacmod_msgs::VehicleSpeedRpt::ConstPtr PublishControl::last_speed_rpt = NULL;
 bool PublishControl::pacmod_enable;
+double PublishControl::avg_latency = 0.0;
+double PublishControl::avg_latency_cnt = 0.0;
 
 /*
  * Called when the node receives a message from the enable topic
@@ -41,5 +43,20 @@ void PublishControl::callback_veh_speed(const pacmod_msgs::VehicleSpeedRpt::Cons
   speed_mutex.lock();
   last_speed_rpt = msg;
   speed_mutex.unlock();
+}
+
+/*
+ * Keep track of the received message latency
+ */
+void PublishControl::calc_latency(const ros::Time headerTimestamp)
+{
+  ros::Time begin = ros::Time::now();
+
+  avg_latency = avg_latency*avg_latency_cnt/(avg_latency_cnt + 1) +
+                (begin.toSec() - headerTimestamp.toSec())/(avg_latency_cnt + 1);
+
+  avg_latency_cnt++;
+
+  ROS_INFO("joy mesg latency avg: %f\n", avg_latency);
 }
 

@@ -23,6 +23,7 @@ public:
   virtual void callback_control(const sensor_msgs::Joy::ConstPtr& msg) = 0;
   static void callback_veh_speed(const pacmod_msgs::VehicleSpeedRpt::ConstPtr& msg);
   static void callback_pacmod_enable(const std_msgs::Bool::ConstPtr& msg);
+  static void calc_latency(const ros::Time headerTimestamp);
   
   // public variables
   static JoyAxis steering_axis;
@@ -38,6 +39,8 @@ public:
   static std::unordered_map<JoyButton, int, EnumHash> btns;
   static pacmod_msgs::VehicleSpeedRpt::ConstPtr last_speed_rpt;
   static bool pacmod_enable;
+  static double avg_latency;
+  static double avg_latency_cnt;
   
 private:
 

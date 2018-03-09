@@ -365,6 +365,8 @@ void PublishControlBoardRev2::publish_lights_horn_wipers_message(const sensor_ms
  */
 void PublishControlBoardRev2::callback_control(const sensor_msgs::Joy::ConstPtr& msg)
 {
+  calc_latency(msg->header.stamp);
+
   try
   {
     if (check_is_enabled(msg) == true)
