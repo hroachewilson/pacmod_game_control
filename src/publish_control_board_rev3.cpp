@@ -76,7 +76,7 @@ void PublishControlBoardRev3::publish_steering_message(const sensor_msgs::Joy::C
 
   speed_mutex.unlock();
 
-  if (speed_valid)
+  if (speed_valid && controller != LOGITECH_G29)
     speed_scale = STEER_OFFSET - fabs((current_speed / (max_veh_speed * STEER_SCALE_FACTOR))); //Never want to reach 0 speed scale.
 
   steer_msg.command = (range_scale * max_rot_rad) * msg->axes[axes[steering_axis]];

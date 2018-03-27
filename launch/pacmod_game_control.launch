@@ -33,7 +33,7 @@
        LOGITECH_G29 (steering wheel and pedals)
        NINTENDO_SWITCH_WIRED_PLUS
        XBOX_ONE -->
-  <arg name="controller_type" default="LOGITECH_F310"/>
+  <arg name="controller_type" default="LOGITECH_G29"/>
         
   <!-- 4.71239 is fast but jerky. Speed in rad/sec.-->
   <arg name="steering_max_speed" default="3.3"/>
@@ -74,6 +74,7 @@
       <param name="coalesce_interval" type="double" value="0.02"/>
       <param name="default_trig_val" value="true"/>
       <param name="dev" value="/dev/input/js0"/>
+      <param name="deadzone" value="0.0" />
     </node>
 
     <node pkg="pacmod_game_control" type="pacmod_game_control_node" name="pacmod_game_control">
