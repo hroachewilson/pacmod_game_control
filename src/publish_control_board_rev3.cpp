@@ -27,7 +27,7 @@ PublishControlBoardRev3::PublishControlBoardRev3() :
   wiper_cmd_pub = n.advertise<pacmod_msgs::SystemCmdInt>("/pacmod/as_rx/wiper_cmd", 20);
   shift_cmd_pub = n.advertise<pacmod_msgs::SystemCmdInt>("/pacmod/as_rx/shift_cmd", 20);
   accelerator_cmd_pub = n.advertise<pacmod_msgs::SystemCmdFloat>("/pacmod/as_rx/accel_cmd", 20);
-  steering_set_position_with_speed_limit_pub = n.advertise<pacmod_msgs::SteerSystemCmd>("/pacmod/as_rx/steer_cmd", 20);
+//  steering_set_position_with_speed_limit_pub = n.advertise<pacmod_msgs::SteerSystemCmd>("/pacmod/as_rx/steer_cmd", 20);
   brake_set_position_pub = n.advertise<pacmod_msgs::SystemCmdFloat>("/pacmod/as_rx/brake_cmd", 20);
 }
 
@@ -85,7 +85,7 @@ void PublishControlBoardRev3::publish_steering_message(const sensor_msgs::Joy::C
 
   steer_msg.command = (range_scale * max_rot_rad) * msg->axes[axes[steering_axis]];
   steer_msg.rotation_rate = steering_max_speed * speed_scale;
-  steering_set_position_with_speed_limit_pub.publish(steer_msg);
+//  steering_set_position_with_speed_limit_pub.publish(steer_msg);
 }
 
 void PublishControlBoardRev3::publish_turn_signal_message(const sensor_msgs::Joy::ConstPtr& msg)
