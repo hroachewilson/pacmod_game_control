@@ -18,3 +18,20 @@ that is represented in ROS by a Joy node.
 
  - `[std_msgs/Bool]` *as_tx/override* - The PACMod override flag.
  - `[sensor_msgs/Joy]` *game_control/joy* - Joystick commands from Joy node.
+
+### Controls (for Logitech F310 gamepad) ###
+
+|Key |Function|
+|:-:|---|
+|Left Joystick (horizontal axis)|steering|
+|Left Trigger| brake|
+|Right Trigger| accelerator|
+|Right Bumper| horn
+|Y|(while brake applied) shift to park|
+|B|(while brake applied) shift to reverse|
+|X|shift to neutral|
+|A|(while brake applied) shift to drive|
+|dpad_down|toggle hazard lights|
+|dpad_left (hold)|left turn signal|
+|dpad_right (hold)|right turn signal|
+|dpad_up|toggle headlight state|
