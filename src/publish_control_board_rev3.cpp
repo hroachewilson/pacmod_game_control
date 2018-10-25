@@ -57,9 +57,12 @@ void PublishControlBoardRev3::publish_steering_message(const sensor_msgs::Joy::C
   steer_msg.enable = local_enable;
   steer_msg.ignore_overrides = false;
 
-  // If the enable flag just went to true, send an override clear
+  // If the enable flag just went to true, send an override clear and clear_faults
   if (!prev_enable && local_enable)
+  {
     steer_msg.clear_override = true;
+    steer_msg.clear_faults = true;
+  }
 
   float range_scale;
   if (vehicle_type == VEHICLE_4 || vehicle_type == VEHICLE_6)
@@ -98,8 +101,11 @@ void PublishControlBoardRev3::publish_turn_signal_message(const sensor_msgs::Joy
 
   // If the enable flag just went to true, send an override clear
   if (!prev_enable && local_enable)
+  {
     turn_signal_cmd_pub_msg.clear_override = true;
-  
+    turn_signal_cmd_pub_msg.clear_faults = true;
+  }
+
   if (msg->axes[axes[DPAD_LR]] == AXES_MAX)
     turn_signal_cmd_pub_msg.command = SIGNAL_LEFT;
   else if (msg->axes[axes[DPAD_LR]] == AXES_MIN)
@@ -145,69 +151,42 @@ void PublishControlBoardRev3::publish_shifting_message(const sensor_msgs::Joy::C
   // Only shift if brake command is higher than 25%
   if (last_brake_cmd > 0.25)
   {
-    // Shifting: reverse
-    if (msg->buttons[btns[RIGHT_BTN]] == BUTTON_DOWN)
+    pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
+    shift_cmd_pub_msg.enable = local_enable;
+    shift_cmd_pub_msg.ignore_overrides = false;
+
+    // If the enable flag just went to true, send an override clear and a faults_clear
+    if (!prev_enable && local_enable)
     {
-      pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
-      shift_cmd_pub_msg.enable = local_enable;
-      shift_cmd_pub_msg.ignore_overrides = false;
-
-      // If the enable flag just went to true, send an override clear
-      if (!prev_enable && local_enable)
-        shift_cmd_pub_msg.clear_override = true;
-
-      shift_cmd_pub_msg.command = SHIFT_REVERSE;
-      shift_cmd_pub.publish(shift_cmd_pub_msg);
+      shift_cmd_pub_msg.clear_override = true;
+      shift_cmd_pub_msg.clear_faults = true;
     }
 
-    // Shifting: drive/high
-    if (msg->buttons[btns[BOTTOM_BTN]] == BUTTON_DOWN)
-    {
-      pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
-      shift_cmd_pub_msg.enable = local_enable;
-      shift_cmd_pub_msg.ignore_overrides = false;
+    uint8_t desired_gear = 0x0;
+    desired_gear |= (msg->buttons[btns[RIGHT_BTN]]  == BUTTON_DOWN) << SHIFT_REVERSE
+                  | (msg->buttons[btns[BOTTOM_BTN]] == BUTTON_DOWN) << SHIFT_LOW
+                  | (msg->buttons[btns[TOP_BTN]]    == BUTTON_DOWN) << SHIFT_PARK
+                  | (msg->buttons[btns[LEFT_BTN]]   == BUTTON_DOWN) << SHIFT_NEUTRAL;
 
-      // If the enable flag just went to true, send an override clear
-      if (!prev_enable && local_enable)
-        shift_cmd_pub_msg.clear_override = true;
-
-      shift_cmd_pub_msg.command = SHIFT_LOW;
-      shift_cmd_pub.publish(shift_cmd_pub_msg);
+    switch(desired_gear){
+      case 1<<SHIFT_REVERSE:
+        shift_cmd_pub_msg.command = SHIFT_REVERSE;
+        break;
+      case 1<<SHIFT_LOW:
+        shift_cmd_pub_msg.command = SHIFT_LOW;
+        break;
+      case 1<<SHIFT_PARK:
+        shift_cmd_pub_msg.command = SHIFT_PARK;
+        break;
+      case 1<<SHIFT_NEUTRAL:
+        shift_cmd_pub_msg.command = SHIFT_NEUTRAL;
+        break;
+      //If we've got an invalid command (or multiple buttons pressed) return and don't publish the message
+      default: return;
     }
-
-    // Shifting: park
-    if (msg->buttons[btns[TOP_BTN]] == BUTTON_DOWN)
-    {
-      pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
-      shift_cmd_pub_msg.enable = local_enable;
-      shift_cmd_pub_msg.ignore_overrides = false;
-
-      // If the enable flag just went to true, send an override clear
-      if (!prev_enable && local_enable)
-        shift_cmd_pub_msg.clear_override = true;
-
-      shift_cmd_pub_msg.command = SHIFT_PARK;
-      shift_cmd_pub.publish(shift_cmd_pub_msg);
-    }
-
-    // Shifting: neutral
-    if (msg->buttons[btns[LEFT_BTN]] == BUTTON_DOWN)
-    {
-      pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
-      shift_cmd_pub_msg.enable = local_enable;
-      shift_cmd_pub_msg.ignore_overrides = false;
-
-      // If the enable flag just went to true, send an override clear
-      if (!prev_enable && local_enable)
-        shift_cmd_pub_msg.clear_override = true;
-
-      shift_cmd_pub_msg.command = SHIFT_NEUTRAL;
-      shift_cmd_pub.publish(shift_cmd_pub_msg);
-    }
+     shift_cmd_pub.publish(shift_cmd_pub_msg);
   }
-
-  // If only an enable/disable button was pressed
-  if (local_enable != prev_enable)
+  else if (local_enable != prev_enable)   // If only an enable/disable button was pressed
   {
     pacmod_msgs::SystemCmdInt shift_cmd_pub_msg;
     shift_cmd_pub_msg.enable = local_enable;
@@ -215,7 +194,10 @@ void PublishControlBoardRev3::publish_shifting_message(const sensor_msgs::Joy::C
 
     // If the enable flag just went to true, send an override clear
     if (!prev_enable && local_enable)
+    {
       shift_cmd_pub_msg.clear_override = true;
+      shift_cmd_pub_msg.clear_faults = true;
+    }
 
     shift_cmd_pub_msg.command = last_shift_cmd;
     shift_cmd_pub.publish(shift_cmd_pub_msg);
@@ -231,7 +213,10 @@ void PublishControlBoardRev3::publish_accelerator_message(const sensor_msgs::Joy
 
   // If the enable flag just went to true, send an override clear
   if (!prev_enable && local_enable)
+  {
     accelerator_cmd_pub_msg.clear_override = true;
+    accelerator_cmd_pub_msg.clear_faults = true;
+  }
 
   if (controller == HRI_SAFE_REMOTE)
   {
@@ -271,7 +256,7 @@ void PublishControlBoardRev3::publish_accelerator_message(const sensor_msgs::Joy
     {
       if (vehicle_type == LEXUS_RX_450H ||
           vehicle_type == VEHICLE_4 ||
-          vehicle_type == VEHICLE_5 ||          
+          vehicle_type == VEHICLE_5 ||
           vehicle_type == VEHICLE_6)
         accelerator_cmd_pub_msg.command = accel_scale_val * (-0.5 * (msg->axes[axes[RIGHT_TRIGGER_AXIS]] - 1.0));
       else
@@ -295,8 +280,10 @@ void PublishControlBoardRev3::publish_brake_message(const sensor_msgs::Joy::Cons
 
   // If the enable flag just went to true, send an override clear
   if (!prev_enable && local_enable)
+  {
     brake_msg.clear_override = true;
-
+    brake_msg.clear_faults = true;
+  }
   if (controller == HRI_SAFE_REMOTE)
   {
     brake_msg.command = (msg->axes[axes[RIGHT_STICK_UD]] > 0.0) ? 0.0 : -(brake_scale_val * msg->axes[4]);
@@ -347,7 +334,8 @@ void PublishControlBoardRev3::publish_brake_message(const sensor_msgs::Joy::Cons
 void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_msgs::Joy::ConstPtr& msg)
 {
   if ((vehicle_type == LEXUS_RX_450H ||
-       vehicle_type == VEHICLE_5) &&
+       vehicle_type == VEHICLE_5 ||
+       vehicle_type == VEHICLE_6) &&
       controller != HRI_SAFE_REMOTE)
   {
     pacmod_msgs::SystemCmdInt headlight_cmd_pub_msg;
@@ -365,12 +353,12 @@ void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_ms
           PublishControl::headlight_state = 4;
       }
       else
-      {	
-        // Rotate through headlight states as button is pressed 
+      {
+        // Rotate through headlight states as button is pressed
         if (!PublishControl::headlight_state_change)
         {
           PublishControl::headlight_state++;
-          PublishControl::headlight_state_change = true;					
+          PublishControl::headlight_state_change = true;
         }
 
         if (PublishControl::headlight_state >= NUM_HEADLIGHT_STATES)
@@ -381,12 +369,13 @@ void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_ms
       if (!prev_enable && local_enable)
       {
         headlight_cmd_pub_msg.clear_override = true;
+        headlight_cmd_pub_msg.clear_faults = true;
         PublishControl::headlight_state = HEADLIGHT_STATE_START_VALUE;
       }
     }
     else
     {
-      PublishControl::headlight_state_change = false;	
+      PublishControl::headlight_state_change = false;
     }
 
     headlight_cmd_pub_msg.command = PublishControl::headlight_state;
@@ -399,7 +388,10 @@ void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_ms
 
     // If the enable flag just went to true, send an override clear
     if (!prev_enable && local_enable)
+    {
       horn_cmd_pub_msg.clear_override = true;
+      horn_cmd_pub_msg.clear_faults = true;
+    }
 
     if (msg->buttons[btns[RIGHT_BUMPER]] == BUTTON_DOWN)
       horn_cmd_pub_msg.command = 1;
@@ -418,7 +410,7 @@ void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_ms
     // Windshield wipers
     if (msg->axes[7] == AXES_MAX)
     {
-      // Rotate through wiper states as button is pressed 
+      // Rotate through wiper states as button is pressed
       PublishControl::wiper_state++;
 
       if (PublishControl::wiper_state >= NUM_WIPER_STATES)
@@ -428,6 +420,7 @@ void PublishControlBoardRev3::publish_lights_horn_wipers_message(const sensor_ms
       if (!prev_enable && local_enable)
       {
         wiper_cmd_pub_msg.clear_override = true;
+        wiper_cmd_pub_msg.clear_faults = true;
         PublishControl::wiper_state = WIPER_STATE_START_VALUE;
       }
 
