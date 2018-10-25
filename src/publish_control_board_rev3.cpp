@@ -257,7 +257,8 @@ void PublishControlBoardRev3::publish_accelerator_message(const sensor_msgs::Joy
       if (vehicle_type == LEXUS_RX_450H ||
           vehicle_type == VEHICLE_4 ||
           vehicle_type == VEHICLE_5 ||
-          vehicle_type == VEHICLE_6)
+          vehicle_type == VEHICLE_6 ||
+	  vehicle_type == VEHICLE_7)
         accelerator_cmd_pub_msg.command = accel_scale_val * (-0.5 * (msg->axes[axes[RIGHT_TRIGGER_AXIS]] - 1.0));
       else
         accelerator_cmd_pub_msg.command = accel_scale_val * (-0.5 * (msg->axes[axes[RIGHT_TRIGGER_AXIS]] - 1.0)) * ACCEL_SCALE_FACTOR + ACCEL_OFFSET;
