@@ -57,7 +57,8 @@ enum VehicleType
   INTERNATIONAL_PROSTAR,
   VEHICLE_4,
   VEHICLE_5,
-  VEHICLE_6
+  VEHICLE_6,
+  VEHICLE_7
 };
 
 enum JoyAxis
